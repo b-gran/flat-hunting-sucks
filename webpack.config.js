@@ -26,12 +26,13 @@ module.exports = {
   },
   module: {
     rules: [
-      { test: /\.js$/, loader: "babel-loader" },
+      { test: /\.(js|jsx)$/, loader: "babel-loader" },
       { test: /\.css$/, loader: "style-loader!css-loader" }
     ]
   },
   resolve: {
-    alias: alias
+    alias: alias,
+    extensions: [".js", ".jsx", ".css"]
   },
   plugins: [
     // expose and write the allowed env vars on the compiled bundle
