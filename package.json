@@ -1,6 +1,6 @@
 {
   "name": "flat-hunting-sucks",
-  "version": "0.1",
+  "version": "0.0.1",
   "description": "ZZZZZZZZZ",
   "scripts": {
     "build": "node utils/build.js",
@@ -15,6 +15,7 @@
     "css-loader": "^0.25.0",
     "fs-extra": "^0.30.0",
     "html-webpack-plugin": "2.24.1",
+    "lodash": "^4.17.4",
     "react": "^15.3.2",
     "react-dom": "^15.3.2",
     "style-loader": "^0.13.0",
