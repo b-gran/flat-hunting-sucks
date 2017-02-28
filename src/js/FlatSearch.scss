@@ -1,0 +1,74 @@
+@mixin toggle($scale) {
+  & {
+    position: absolute;
+    margin-left: -9999px;
+    visibility: hidden;
+  }
+
+  & + label {
+    display: block;
+    position: relative;
+    cursor: pointer;
+    outline: none;
+    user-select: none;
+
+    padding: 2px;
+    width: $scale * 2 * 1px;
+    height: $scale * 1px;
+    background-color: #dddddd;
+    border-radius: 60px;
+    transition: background 0.4s;
+  }
+
+  & + label:before,
+  & + label:after {
+    display: block;
+    position: absolute;
+    content: "";
+  }
+
+  & + label:before {
+    top: 2px;
+    left: 2px;
+    bottom: 2px;
+    right: 2px;
+    background-color: #fff;
+    border-radius: $scale * 1px;
+    transition: background 0.4s;
+  }
+
+  & + label:after {
+    top: 4px;
+    left: 4px;
+    bottom: 4px;
+    width: ($scale - 8) * 1px;
+    background-color: #dddddd;
+    border-radius: ($scale - 8) * 1px;
+    transition: margin 0.4s, background 0.4s;
+  }
+
+  &:checked + label {
+    background-color: #8ce196;
+  }
+
+  &:checked + label:after {
+    margin-left: $scale * 1px;
+    background-color: #8ce196;
+  }
+}
+
+.toggle {
+  &.is-small {
+    @include toggle(20);
+  }
+
+  &.is-medium,
+  &:not(.is-small):not(.is-large) {
+    @include toggle(30);
+  }
+
+  &.is-large {
+    @include toggle(45);
+  }
+}
+

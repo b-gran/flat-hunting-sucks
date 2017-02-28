@@ -4,23 +4,34 @@
   "description": "ZZZZZZZZZ",
   "scripts": {
     "build": "node utils/build.js",
-    "start": "node utils/webserver.js"
+    "start": "NODE_ENV='development' node utils/webserver.js",
+    "build-css": "node-sass src/ -o src/",
+    "watch-css": "npm run build-css && node-sass src/ -o src/ --watch"
   },
   "dependencies": {
     "babel-core": "^6.17.0",
     "babel-loader": "^6.2.4",
     "babel-preset-es2015": "^6.6.0",
     "babel-preset-react": "^6.16.0",
+    "babel-preset-react-app": "^2.1.1",
     "babel-preset-react-hmre": "^1.1.1",
+    "bulma": "^0.3.2",
+    "classnames": "^2.2.5",
     "css-loader": "^0.25.0",
+    "file-loader": "^0.10.1",
+    "font-awesome": "^4.7.0",
     "fs-extra": "^0.30.0",
     "html-webpack-plugin": "2.24.1",
     "lodash": "^4.17.4",
-    "react": "^15.3.2",
+    "react": "^15.4.2",
     "react-dom": "^15.3.2",
+    "react-redux": "^5.0.3",
+    "redux": "^3.6.0",
     "style-loader": "^0.13.0",
+    "url-loader": "^0.5.8",
     "webpack": "2.2.1",
     "webpack-dev-server": "^2.3.0",
+    "whatwg-fetch": "^2.0.2",
     "write-file-webpack-plugin": "3.4.2"
   }
 }

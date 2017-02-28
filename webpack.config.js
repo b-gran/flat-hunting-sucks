@@ -47,6 +47,8 @@ function Entry (id, filename, htmlFile) {
 module.exports = {
   entry: _.mapValues(Entries, entry => entry.filename),
 
+  devtool: 'source-map',
+
   output: {
     path: path.join(__dirname, "build"),
     filename: "[name].bundle.js"
@@ -55,7 +57,21 @@ module.exports = {
   module: {
     rules: [
       { test: /\.(js|jsx)$/, loader: "babel-loader" },
-      { test: /\.css$/, loader: "style-loader!css-loader" }
+      { test: /\.css$/, loader: "style-loader!css-loader" },
+
+      {
+        exclude: [
+          /\.html$/,
+          /\.(js|jsx)$/,
+          /\.css$/,
+          // /\.json$/,
+        ],
+        loader: 'url-loader',
+        query: {
+          limit: 10000,
+          name: 'static/media/[name].[hash:8].[ext]'
+        }
+      }
     ]
   },
 

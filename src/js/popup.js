@@ -1,9 +1,22 @@
-import "../css/popup.css";
-import Greeting from "./popup/greeting_component.jsx";
-import React from "react";
-import { render } from "react-dom";
+// Resets, frameworks, etc.
+// This needs to come first so we can override the styles.
+import './popup.css'
 
-render(
-  <Greeting/>,
-  window.document.getElementById("app-container")
-);
+import 'whatwg-fetch'
+
+import { Provider } from 'react-redux'
+import { createStore } from 'redux'
+import reducer from './reducers/index'
+
+import React from 'react'
+import ReactDOM from 'react-dom'
+import App from './App'
+
+const store = createStore(reducer)
+
+ReactDOM.render(
+  <Provider store={store}>
+    <App />
+  </Provider>,
+  document.getElementById('app-container')
+)
