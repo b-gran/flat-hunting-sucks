@@ -7149,4 +7149,5 @@ label.panel-block:hover {
   clip: auto; }
 
 html, body {
-  font-family: 'Raleway', sans-serif; }
+  font-family: 'Raleway', sans-serif;
+  width: 785px; }
