@@ -31,16 +31,24 @@ function getFacade (_store) {
 }
 
 function restoreFromStorage() {
+  const form = restoreKey('form', _.overEvery([ _.isObject, _.negate(_.isNil) ]))
+  const listings = restoreKey('listings', _.overEvery([ Array.isArray, _.negate(_.isEmpty) ]))
+  const page = restoreKey('page')
+  return {
+    form: form,
+    listings: listings,
+    page: page,
+  }
+}
+
+function restoreKey (key, validate = _.negate(_.isNil)) {
   try {
-    const form = JSON.parse(window.localStorage.getItem('form'))
-    if (_.isObject(form) && form !== null) {
-      return {
-        form: form
-      }
+    const item = JSON.parse(window.localStorage.getItem(key))
+    if (validate(item)) {
+      return item
     }
   } catch (err) {}
-
-  return {}
+  return undefined
 }
 
 const store = createStore(reducer, restoreFromStorage())
@@ -56,6 +64,18 @@ facade.subscribe(
     window.localStorage.setItem('form', JSON.stringify(nonEmptyFields))
   },
   _.property('form')
+)
+
+facade.subscribe(
+  listings => {
+    window.localStorage.setItem('listings', JSON.stringify(listings))
+  },
+  _.property('listings')
+)
+
+facade.subscribe(
+  page => window.localStorage.setItem('page', JSON.stringify(page)),
+  _.property('page')
 )
 
 ReactDOM.render(

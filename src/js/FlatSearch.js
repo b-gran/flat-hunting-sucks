@@ -120,8 +120,8 @@ function FlatSearch (props) {
 
             <Label>Flat Location</Label>
             <Control>
-              <input value={props.form.location || ''} onChange={changeText('location')} type="text"
-                     className="input"/>
+              <input value={props.form.location || ''} onChange={changeText('location')}
+                     type="text" className="input"/>
             </Control>
 
             <Label>Work Address</Label>
@@ -132,6 +132,30 @@ function FlatSearch (props) {
 
             <hr/>
 
+            <div className="column">
+              <div className="title">Flat Details</div>
+
+              <div className="columns">
+                <div className="column">
+                  <HorizontalInput even={true} label="Bills Included">
+                    <ToggleSwitch
+                      checked={props.form.bills || false}
+                      onChange={changeSwitch('bills')}/>
+                  </HorizontalInput>
+                </div>
+
+                <div className="column">
+                  <HorizontalInput even={true} label="Smoking Allowed">
+                    <ToggleSwitch
+                      checked={props.form.smoking || false}
+                      onChange={changeSwitch('smoking')}/>
+                  </HorizontalInput>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="column">
             <p className="title">Commute</p>
             <HorizontalInput label="Biking">
               <Control className='has-addons'>
@@ -158,28 +182,6 @@ function FlatSearch (props) {
                 <a className="button is-info">£ (pcm)</a>
               </Control>
             </HorizontalInput>
-          </div>
-
-          <div className="column">
-            <div className="title">Flat Details</div>
-
-            <div className="columns">
-              <div className="column">
-                <HorizontalInput even={true} label="Bills Included">
-                  <ToggleSwitch
-                    checked={props.form.bills || false}
-                    onChange={changeSwitch('bills')}/>
-                </HorizontalInput>
-              </div>
-
-              <div className="column">
-                <HorizontalInput even={true} label="Smoking Allowed">
-                  <ToggleSwitch
-                    checked={props.form.smoking || false}
-                    onChange={changeSwitch('smoking')}/>
-                </HorizontalInput>
-              </div>
-            </div>
 
             <div className="level">
               <div className="level-item">
@@ -201,7 +203,7 @@ export default connect(
     form: state.form
   }),
   dispatch => ({
-    dispatch: dispatch
+    dispatch: dispatch,
   })
 )(FlatSearch)
 

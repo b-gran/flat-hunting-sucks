@@ -10,3 +10,18 @@ html, body {
 }
 
 // Helpers
+
+.is-bold, .title.is-bold {
+  font-weight: bold;
+}
+
+.is-inline-flex {
+  display: inline-flex;
+  &.is-vcentered {
+    align-items: center;
+  }
+}
+
+.is-hcentered {
+  justify-content: center;
+}

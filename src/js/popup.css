@@ -7151,3 +7151,15 @@ label.panel-block:hover {
 html, body {
   font-family: 'Raleway', sans-serif;
   width: 785px; }
+
+.is-bold, .title.is-bold {
+  font-weight: bold; }
+
+.is-inline-flex {
+  display: inline-flex; }
+
+.is-inline-flex.is-vcentered {
+  align-items: center; }
+
+.is-hcentered {
+  justify-content: center; }

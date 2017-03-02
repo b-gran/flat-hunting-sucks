@@ -1,1 +1,17 @@
 @import '../../node_modules/bulma/sass/utilities/variables';
+
+.listings {
+  margin: 20px 10px;
+}
+
+.listing-left {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.rent {
+  background: #9f5eaf;
+  color: #ffffff;
+  padding: 3px;
+}
