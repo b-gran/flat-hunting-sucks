@@ -40,6 +40,99 @@ function pt2ptDistance (source, dest, mode) {
   })
 }
 
+function cacheDistances (sources, dest, mode, distances) {
+  sources.forEach(
+    (source, idx) => {
+      const key = getDistanceKeyFromLatLng(source, dest, mode)
+      const value = distances[idx]
+      window.localStorage.setItem(key, JSON.stringify(value));
+    }
+  )
+}
+
+function getDistanceKeyFromLatLng (source, dest, mode) {
+  const destObj = {
+    lat: dest.lat(),
+    lng: dest.lng(),
+  }
+
+  const sourceObj = {
+    lat: source.lat(),
+    lng: source.lng(),
+  }
+
+  return JSON.stringify(sourceObj) + JSON.stringify(destObj) + mode
+}
+
+function getDistanceForAll (sources, dest, mode) {
+  if (!Array.isArray(sources)) {
+    console.error('Error: sources must be an array')
+    return Promise.reject(false)
+  }
+
+  const uncached = sources.filter(
+    source => {
+      return _.isNil(
+        window.localStorage.getItem(getDistanceKeyFromLatLng(source, dest, mode))
+      )
+    }
+  )
+
+  console.log('uncached', uncached)
+
+  if (uncached.length === 0) {
+    console.log('all cached')
+    return Promise.resolve([])
+  }
+
+  const chunks = _.chunk(uncached, 24)
+  let netwkCount = 0;
+
+  return Promise.map(
+    chunks,
+    (sourceChunk, idx) => {
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          distance.getDistanceMatrix({
+            origins: sourceChunk,
+            destinations: [dest],
+            travelMode: mode
+          }, (results, status) => {
+            if (status === 'OK' && results.rows) {
+              const distances = results.rows.map(_.property('elements[0]'))
+              cacheDistances(sourceChunk, dest, mode, distances)
+              return resolve(distances)
+            }
+
+            console.error(`Failed ${mode} on chunk ${idx}:`, status)
+            console.error(`Netwk count is ${netwkCount}`)
+
+            return reject(new Error(status))
+          })
+        }, Math.pow(2, netwkCount++) * 50)
+      })
+    }
+  ).then(chunkResults => {
+    return _.flatten(chunkResults)
+  })
+
+  // return new Promise((resolve, reject) => {
+  //   distance.getDistanceMatrix({
+  //     origins: sources,
+  //     destinations: [dest],
+  //     travelMode: 'BICYCLING'
+  //   }, (results, status) => {
+  //     console.log('results', results);
+  //     console.log('status', status);
+  //     if (status === 'OK') {
+  //       return resolve(results)
+  //     }
+  //
+  //     return reject(results)
+  //   })
+  // })
+}
+
 function getDrivingDistance (source, dest) {
   return pt2ptDistance(source, dest, 'DRIVING')
 }
@@ -61,20 +154,37 @@ function getCyclingDistance (source, dest) {
 
 // location, work, bike, transport, rent, bills, smoking
 export default function (form) {
-  return getSRQueryString(form)
-    .then(uriParams => {
-      return fetch(
-        `https://www.spareroom.co.uk/flatshare/api.pl?${uriParams}` // ,
+  return getCoords(form.work)
+    .then(workRawCoords => {
+      const workLatLng = new google.maps.LatLng(
+        workRawCoords.lat,
+        workRawCoords.lng,
       )
+
+      return getSRQueryString(form)
+        .then(uriParams => {
+          return fetch(
+            `https://www.spareroom.co.uk/flatshare/api.pl?${uriParams}` // ,
+          )
+        })
+        .then(result => result.json())
+        .then(body => normalizeListings(body.results, workLatLng))
     })
-    .then(result => result.json())
-    .then(body => normalizeListings(body.results))
+
+  // return getSRQueryString(form)
+  //   .then(uriParams => {
+  //     return fetch(
+  //       `https://www.spareroom.co.uk/flatshare/api.pl?${uriParams}` // ,
+  //     )
+  //   })
+  //   .then(result => result.json())
+  //   .then(body => normalizeListings(body.results))
 }
 
 // pw = pcm × 0.2299794661
 // pcm = pw * 4.3482142857
-function normalizeListings (listings) {
-  return listings.map(modify({
+function normalizeListings (listings, work) {
+  const normalized = listings.map(modify({
     min_rent: (rent, _k, listing) => {
       return listing.per === 'pw'
         ? Math.round(rent * 4.3482142857)
@@ -83,6 +193,64 @@ function normalizeListings (listings) {
 
     per: _.constant('pcm')
   }))
+
+  const sources = normalized.map(listing => new google.maps.LatLng(
+    Number(listing.latitude),
+    Number(listing.longitude)
+  ))
+
+  return getDistanceForAll(sources, work, 'BICYCLING')
+    .then(result => {
+      console.log('cycling', result)
+      return result
+    }).delay(5000).then(cycling => {
+      return getDistanceForAll(sources, work, 'TRANSIT', 2000)
+        .then(transit => {
+            console.log('transit', transit)
+          return [cycling, transit]
+        })
+    }).catch(err => {
+      console.log('err (outside)', err)
+    })
+
+  // return Promise.join(
+  //   getDistanceForAll(sources, work, 'BICYCLING'),
+  //   getDistanceForAll(sources, work, 'TRANSIT', 2000),
+  // ).then(([ cycling, transit ]) => {
+  //   console.log('cycling', cycling)
+  //   console.log('transit', transit)
+  // }).catch(err => {
+  //   console.log('err', err)
+  // })
+
+  // return getDistanceForAll(sources, work, 'BICYCLING')
+  //   .then(result => {
+  //     console.log('result', result)
+  //     return normalized
+  //   })
+  //   .catch(err => {
+  //     console.log('err', err)
+  //     return Promise.reject(err)
+  //   })
+
+  // return Promise.map(
+  //   normalized,
+  //   listing => {
+  //     const location = new google.maps.LatLng(
+  //       Number(listing.latitude),
+  //       Number(listing.longitude)
+  //     )
+  //
+  //     return Promise.join(
+  //       getCyclingDistance(location, work),
+  //       getDrivingDistance(location, work)
+  //     ).then(([ cycling, driving ]) => {
+  //       listing.cycling = cycling
+  //       listing.driving = driving
+  //       return listing
+  //     })
+  //   }
+  // )
 }
 
 function modify (modifier) {
@@ -107,7 +275,6 @@ function modify (modifier) {
 function getSRQueryString (form) {
   return getCoords(form.location)
     .then(location => {
-      console.log('location', location)
       return getQSFromObject({
         show: 'all',
         max_per_page: 100,

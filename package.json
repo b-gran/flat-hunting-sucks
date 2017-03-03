@@ -6,7 +6,8 @@
     "build": "node utils/build.js",
     "start": "NODE_ENV='development' node utils/webserver.js",
     "build-css": "node-sass src/ -o src/",
-    "watch-css": "npm run build-css && node-sass src/ -o src/ --watch"
+    "watch-css": "npm run build-css && node-sass src/ -o src/ --watch",
+    "debug": "react-devtools"
   },
   "dependencies": {
     "babel-core": "^6.17.0",
@@ -24,6 +25,7 @@
     "html-webpack-plugin": "2.24.1",
     "lodash": "^4.17.4",
     "react": "^15.4.2",
+    "react-devtools": "^2.0.12",
     "react-dom": "^15.3.2",
     "react-redux": "^5.0.3",
     "redux": "^3.6.0",

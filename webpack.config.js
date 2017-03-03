@@ -83,7 +83,7 @@ module.exports = {
   plugins: [
     // expose and write the allowed env vars on the compiled bundle
     new webpack.DefinePlugin({
-      "process.env.NODE_ENV": JSON.stringify(env.NODE_ENV)
+      "process.env.NODE_ENV": JSON.stringify(env.NODE_ENV),
     }),
   ].concat(_.values(Entries).map(entry => new HtmlWebpackPlugin({
       template: entry.htmlFile,
