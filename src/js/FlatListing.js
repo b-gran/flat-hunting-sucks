@@ -100,9 +100,21 @@ function FlatItem (props) {
 
           <AdText text={props.data.ad_text_255} />
 
-          <RoomsFilled
-            totalRooms={parseInt(props.data.rooms_in_property)}
-            roomsForRent={parseInt(props.data.rooms_for_rent)} />
+          <div className="bottom-row">
+            <RoomsFilled
+              totalRooms={parseInt(props.data.rooms_in_property)}
+              roomsForRent={parseInt(props.data.rooms_for_rent)} />
+
+            {
+              props.data.cyclingDistance &&
+              <Commute data={props.data.cyclingDistance} icon="fa-bicycle" />
+            }
+
+            {
+              props.data.transitDistance &&
+              <Commute data={props.data.transitDistance} icon="fa-subway" />
+            }
+          </div>
         </div>
 
         <div className="media-right tags">
@@ -136,6 +148,38 @@ function FlatItem (props) {
 FlatItem.displayName = 'FlatItem'
 FlatItem.propTypes = {
   data: React.PropTypes.object.isRequired,
+}
+
+const DistanceMatrixData = React.PropTypes.shape({
+  text: React.PropTypes.string.isRequired,
+  value: React.PropTypes.any.isRequired,
+})
+const DistanceMatrixResult = React.PropTypes.shape({
+  distance: DistanceMatrixData.isRequired,
+  duration: DistanceMatrixData.isRequired,
+})
+
+function Commute (props) {
+  const iconClasses = `fa ${props.icon}`
+  return (
+    <div className="commutes-item">
+      <div>
+        <i className={iconClasses} />
+      </div>
+
+      <div>
+        <span>{ props.data.duration.text }</span>
+      </div>
+
+      <div>
+        <span>{ props.data.distance.text }</span>
+      </div>
+    </div>
+  );
+}
+Commute.propTypes = {
+  data: DistanceMatrixResult.isRequired,
+  icon: React.PropTypes.string.isRequired,
 }
 
 function RoomsFilled (props) {

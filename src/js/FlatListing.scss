@@ -40,6 +40,44 @@
   }
 }
 
+
+// Commute info
+
+.bottom-row {
+  display: inline-flex;
+
+  > * + * {
+    margin-left: 10px;
+  }
+}
+
+.commutes-item {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: stretch;
+
+  background: $primary;
+  color: #ffffff;
+  padding: 2px 0;
+
+  > * {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 0 5px;
+  }
+
+  > * + * {
+    border-left: 1px solid white;
+  }
+
+  .fa {
+    font-size: 18px;
+  }
+}
+
 // Tags on right hand side of row
 
 .tags {

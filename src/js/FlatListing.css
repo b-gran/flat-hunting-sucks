@@ -26,6 +26,34 @@
   font-size: 0.75rem;
   margin-left: 0.5rem; }
 
+.bottom-row {
+  display: inline-flex; }
+
+.bottom-row > * + * {
+  margin-left: 10px; }
+
+.commutes-item {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: stretch;
+  background: #00d1b2;
+  color: #ffffff;
+  padding: 2px 0; }
+
+.commutes-item > * {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 0 5px; }
+
+.commutes-item > * + * {
+  border-left: 1px solid white; }
+
+.commutes-item .fa {
+  font-size: 18px; }
+
 .tags {
   display: flex;
   flex-direction: column;
