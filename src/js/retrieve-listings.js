@@ -81,6 +81,42 @@ export default function (form) {
     })
 }
 
+const byRoomRegexp = /room/i;
+
+function isRentByRoom (listingData) {
+  if (_.isEmpty(listingData)) {
+    return false
+  }
+
+  return byRoomRegexp.test(listingData.rent_options);
+}
+
+const regexp7 = /7/i;
+
+function isFullTime (listingData) {
+  if (_.isEmpty(listingData)) {
+    return false
+  }
+
+  return regexp7.test(listingData.days_of_wk_available);
+}
+
+const ensuiteRegexp = /(ensuite?|en-suite?|en\ssuite?)/i;
+const privateBathroomRegexp = /(private|own)\s+bathroom/i;
+
+function isEnsuite (listingData) {
+  if (_.isEmpty(listingData)) {
+    return false
+  }
+
+  return (
+    ensuiteRegexp.test(listingData.ad_text_255) ||
+    ensuiteRegexp.test(listingData.ad_title) ||
+    privateBathroomRegexp.test(listingData.ad_text_255) ||
+    privateBathroomRegexp.test(listingData.ad_title)
+  )
+}
+
 // pw = pcm × 0.2299794661
 // pcm = pw * 4.3482142857
 function normalizeListings (listings, work) {
@@ -96,6 +132,10 @@ function normalizeListings (listings, work) {
   }))
 
   const sources = normalized.map(listing => {
+    listing.rentByRoom = isRentByRoom(listing)
+    listing.isFullTime = isFullTime(listing)
+    listing.ensuite = isEnsuite(listing)
+
     listing.LatLng = new google.maps.LatLng(
       Number(listing.latitude),
       Number(listing.longitude)

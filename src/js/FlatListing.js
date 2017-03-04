@@ -46,7 +46,6 @@ class FlatListing extends React.Component {
             <div className="listings">
               {
                 !_.isEmpty(this.props.listings) &&
-                // this.props.listings
                 sortListings(this.props.listings, this.props.filter)
                   .map(listing => (
                     <Flat key={listing.advert_id} data={listing} />
@@ -89,39 +88,18 @@ FlatListing.propTypes = {
 }
 
 function sortListings (listings, filter) {
+  const averages = precomputeAverages(listings)
+
   const baseSortFunction = {
-    [FilterOptions.sortBy.CYCLING]: (listing1, listing2) => {
-      if (!listing1.cyclingDistance || !listing2.cyclingDistance) {
-        return 0
-      }
-
+    [FilterOptions.sortBy.PRICE]: sortByProperty('min_rent'),
+    [FilterOptions.sortBy.CYCLING]: sortByProperty('cyclingDistance.duration.value'),
+    [FilterOptions.sortBy.TRANSIT]: sortByProperty('transitDistance.duration.value'),
+    [FilterOptions.sortBy.BEST]: (listing1, listing2) => {
       return (
-        listing1.cyclingDistance.duration.value -
-        listing2.cyclingDistance.duration.value
+        getRating(listing1, averages) -
+        getRating(listing2, averages)
       )
-    },
-
-    [FilterOptions.sortBy.PRICE]: (listing1, listing2) => {
-      if (!listing1.min_rent || !listing2.min_rent) {
-        return 0
-      }
-
-      return (
-        Number(listing1.min_rent) -
-        Number(listing2.min_rent)
-      )
-    },
-
-    [FilterOptions.sortBy.TRANSIT]: (listing1, listing2) => {
-      if (!listing1.transitDistance || !listing2.transitDistance) {
-        return 0
-      }
-
-      return (
-        listing1.transitDistance.duration.value -
-        listing2.transitDistance.duration.value
-      )
-    },
+    }
   }[filter.sortBy]
 
   const ordering = {
@@ -132,6 +110,77 @@ function sortListings (listings, filter) {
   const sortFunction = _.flow(baseSortFunction, ordering)
 
   return listings.slice().sort(sortFunction)
+}
+
+function getRating (listing, averages) {
+  return (
+    point(
+      listing,
+      'min_rent',
+      averages[FilterOptions.sortBy.PRICE]
+    ) +
+    point(
+      listing,
+      'cyclingDistance.duration.value',
+      averages[FilterOptions.sortBy.CYCLING]
+    ) +
+    point(
+      listing,
+      'transitDistance.duration.value',
+      averages[FilterOptions.sortBy.TRANSIT]
+    ) +
+    (listing.ensuite ? 1 : -1) +
+    (listing.isFullTime ? 1 : -2) +
+    (listing.rentByRoom ? 1 : -2)
+  )
+}
+
+function point (listing, property, average) {
+  const value = _.get(listing, property)
+
+  if (_.isNil(value)) {
+    return 0
+  }
+
+  return value < average
+    ? 1
+    : 0
+}
+
+function precomputeAverages (listings) {
+  const averagePrice = computeAverage(listings, 'min_rent')
+  const averageCyclingDuration = computeAverage(listings, 'cyclingDistance.duration.value')
+  const averageTransitDuration = computeAverage(listings, 'transitDistance.duration.value')
+
+  return {
+    [FilterOptions.sortBy.PRICE]: averagePrice,
+    [FilterOptions.sortBy.CYCLING]: averageCyclingDuration,
+    [FilterOptions.sortBy.TRANSIT]: averageTransitDuration,
+  }
+}
+
+function computeAverage (listings, property) {
+  return listings.reduce(
+      (average, listing) => {
+        const value = _.get(listing, property)
+        return _.isNil(value)
+          ? average
+          : (average + value)
+      }
+    ) / listings.length
+}
+
+function sortByProperty (property, transform = _.identity) {
+  return function (object1, object2) {
+    const value1 = _.get(object1, property)
+    const value2 = _.get(object2, property)
+
+    if (_.isNil(value1) || _.isNil(value2)) {
+      return 0
+    }
+
+    return transform(value1) - transform(value2)
+  }
 }
 
 export default connect(

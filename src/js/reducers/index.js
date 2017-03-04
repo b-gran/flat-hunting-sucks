@@ -9,6 +9,7 @@ export const FilterOptions = {
     PRICE: 'PRICE',
     CYCLING: 'CYCLING',
     TRANSIT: 'TRANSIT',
+    BEST: 'BEST',
   },
 
   order: {
@@ -22,6 +23,7 @@ export const FilterOptionText = {
     PRICE: 'Price',
     CYCLING: 'Cycling time',
     TRANSIT: 'Transit time',
+    BEST: 'Best result',
   },
 
   order: {

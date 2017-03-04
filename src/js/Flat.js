@@ -48,19 +48,19 @@ export default function Flat (props) {
           </span>
 
           {
-            isEnsuite(props.data)
+            props.data.ensuite
               ? <span className="tag is-success is-small">Ensuite</span>
               : <span className="tag is-danger is-small">Shared bathroom</span>
           }
 
           {
-            isFullTime(props.data)
+            props.data.isFullTime
               ? <span className="tag is-success is-small">Full time</span>
               : <span className="tag is-danger is-small">{ props.data.days_of_wk_available }</span>
           }
 
           {
-            isRentByRoom(props.data)
+            props.data.rentByRoom
               ? <span className="tag is-success is-small">By room</span>
               : <span className="tag is-danger is-small">{ _.capitalize(props.data.rent_options) }</span>
           }
@@ -183,42 +183,6 @@ function convertAdTextToMarkup (adText) {
         ))
       }
     </div>
-  )
-}
-
-const byRoomRegexp = /room/i;
-
-function isRentByRoom (listingData) {
-  if (_.isEmpty(listingData)) {
-    return false
-  }
-
-  return byRoomRegexp.test(listingData.rent_options);
-}
-
-const regexp7 = /7/i;
-
-function isFullTime (listingData) {
-  if (_.isEmpty(listingData)) {
-    return false
-  }
-
-  return regexp7.test(listingData.days_of_wk_available);
-}
-
-const ensuiteRegexp = /(ensuite?|en-suite?|en\ssuite?)/i;
-const privateBathroomRegexp = /(private|own)\s+bathroom/i;
-
-function isEnsuite (listingData) {
-  if (_.isEmpty(listingData)) {
-    return false
-  }
-
-  return (
-    ensuiteRegexp.test(listingData.ad_text_255) ||
-    ensuiteRegexp.test(listingData.ad_title) ||
-    privateBathroomRegexp.test(listingData.ad_text_255) ||
-    privateBathroomRegexp.test(listingData.ad_title)
   )
 }
 

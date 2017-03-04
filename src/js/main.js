@@ -34,10 +34,12 @@ function restoreFromStorage() {
   const form = restoreKey('form', _.overEvery([ _.isObject, _.negate(_.isNil) ]))
   const listings = restoreKey('listings', _.overEvery([ Array.isArray, _.negate(_.isEmpty) ]))
   const page = restoreKey('page')
+  const filter = restoreKey('filter')
   return {
     form: form,
     listings: listings,
     page: page,
+    filter: filter,
   }
 }
 
