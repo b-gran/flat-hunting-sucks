@@ -41,7 +41,9 @@ class FlatListing extends React.Component {
               {
                 !_.isEmpty(this.props.listings) &&
                 this.props.listings
-                  .map(listing => <FlatItem data={listing} />)
+                  .map(listing => (
+                    <FlatItem key={listing.advert_id} data={listing} />
+                  ))
               }
 
               {
@@ -256,7 +258,9 @@ function convertAdTextToMarkup (adText) {
   return (
     <div className="ad-text-wrap">
       {
-        lines.map(line => <div className="ad-text-line">{ line }</div>)
+        lines.map(line => (
+          <div key={line} className="ad-text-line">{ line }</div>
+        ))
       }
     </div>
   )
