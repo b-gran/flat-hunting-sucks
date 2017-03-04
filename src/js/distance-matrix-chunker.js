@@ -77,8 +77,11 @@ function getQueue (doTask, elementsPerSecond) {
     // Bandwidth is fully restored every second, so we only need to wait
     // one second max.
     if (diff(currentTime, bandwidthRestoredTime) > 1e3) {
+      console.log(`need ${bandwidthNeeded}... waiting for 1000`)
       return Promise.delay(1000)
     }
+
+    console.log(`need ${bandwidthNeeded}... waiting for ${diff(currentTime, bandwidthRestoredTime)}`)
 
     // Wait until we get back the bandwidth needed to do the task
     return Promise.delay(diff(currentTime, bandwidthRestoredTime))
@@ -159,7 +162,7 @@ export default function getChunker (
     }
 
     const withCachedResults = sources.map(
-      source => [ source, getCachedResult(source, dest, mode) ]
+      source => [ source, getCachedResult(source.LatLng, dest, mode) ]
     )
 
     const [cached, uncached] = _.partition(
@@ -176,8 +179,11 @@ export default function getChunker (
       chunks,
       chunk => doTask(getTask(chunk, dest, mode))
     ).then(chunkResults => {
-      return cached.map(_.property(1))
-        .concat(_.flatten(chunkResults))
+      return cached.concat(
+        _.flatten(chunkResults).map(
+          (chunkResult, idx) => [ uncached[idx][0], chunkResult ]
+        )
+      )
     })
   }
 
@@ -201,7 +207,7 @@ export default function getChunker (
   function getTask (origins, destination, travelMode) {
     return {
       payload: {
-        sources: origins,
+        sources: origins.map(_.property('LatLng')),
         dest: destination,
         mode: travelMode
       },

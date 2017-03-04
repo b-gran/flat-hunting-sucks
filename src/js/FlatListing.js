@@ -22,6 +22,7 @@ class FlatListing extends React.Component {
           })
         })
         .catch(err => {
+          console.log('Error:', err)
           return this.props.dispatch({
             type: 'error',
             message: 'Could not fetch listings',

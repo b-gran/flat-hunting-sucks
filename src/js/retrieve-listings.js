@@ -95,23 +95,44 @@ function normalizeListings (listings, work) {
     per: _.constant('pcm')
   }))
 
-  const sources = normalized.map(listing => new google.maps.LatLng(
-    Number(listing.latitude),
-    Number(listing.longitude)
-  ))
+  const sources = normalized.map(listing => {
+    listing.LatLng = new google.maps.LatLng(
+      Number(listing.latitude),
+      Number(listing.longitude)
+    )
 
+    return listing
+  })
+
+  // Do these in series to make sure we don't hit API limits
   return doChunkedRequest(sources, work, 'BICYCLING')
     .then(cyclingResult => {
-      console.log('cycling', cyclingResult)
       return doChunkedRequest(sources, work, 'TRANSIT')
         .then(transitResult => {
-          console.log('transitResult', transitResult)
           return [cyclingResult, transitResult]
         })
-    }).catch(err => {
-    console.log('Error in request:', err)
-    return Promise.reject(err)
+    })
+    .then(([cyclingResult, transitResult]) => {
+      return buildResult(cyclingResult, transitResult)
+    })
+    .catch(err => {
+      console.log('Error in request:', err)
+      return Promise.reject(err)
+    })
+}
+
+function buildResult (cycling, transit) {
+  const map = {}
+  cycling.forEach(([listing, distance]) => {
+    map[listing.advert_id] = map[listing.advert_id] || listing
+    map[listing.advert_id].cyclingDistance = distance
   })
+  transit.forEach(([listing, distance]) => {
+    map[listing.advert_id] = map[listing.advert_id] || listing
+    map[listing.advert_id].transitDistance = distance
+  })
+
+  return _.values(map)
 }
 
 function modify (modifier) {
