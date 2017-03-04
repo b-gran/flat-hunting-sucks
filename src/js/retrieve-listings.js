@@ -1,11 +1,48 @@
 import _ from 'lodash'
 import Promise from 'bluebird'
 import 'whatwg-fetch'
+import getChunker from './distance-matrix-chunker'
 
 const google = window.google
 
 const geocoder = new google.maps.Geocoder()
 const distance = new google.maps.DistanceMatrixService()
+
+const doChunkedRequest = getChunker(
+  distance,
+  {
+    maxElementsPerSecond: 100,
+    elementsPerChunk: 24,
+    getCachedResult: (source, dest, mode) => {
+      const key = getDistanceKeyFromLatLng(source, dest, mode)
+      const cachedValue = window.localStorage.getItem(key);
+
+      if (_.isNil(cachedValue) || _.isEmpty(cachedValue)) {
+        return cachedValue
+      }
+
+      return JSON.parse(cachedValue)
+    },
+    setCachedResult: (source, dest, mode, result) => {
+      const key = getDistanceKeyFromLatLng(source, dest, mode)
+      window.localStorage.setItem(key, JSON.stringify(result));
+    },
+  }
+)
+
+function getDistanceKeyFromLatLng (source, dest, mode) {
+  const destObj = {
+    lat: dest.lat(),
+    lng: dest.lng(),
+  }
+
+  const sourceObj = {
+    lat: source.lat(),
+    lng: source.lng(),
+  }
+
+  return JSON.stringify(sourceObj) + JSON.stringify(destObj) + mode
+}
 
 function getCoords (address) {
   return new Promise((resolve, reject) => {
@@ -23,134 +60,6 @@ function getCoords (address) {
     })
   })
 }
-
-function pt2ptDistance (source, dest, mode) {
-  return new Promise((resolve, reject) => {
-    distance.getDistanceMatrix({
-      origins: [source],
-      destinations: [dest],
-      travelMode: mode,
-    }, (results, status) => {
-      if (status === 'OK') {
-        return resolve(results.rows[0].elements[0])
-      }
-
-      return reject(results)
-    })
-  })
-}
-
-function cacheDistances (sources, dest, mode, distances) {
-  sources.forEach(
-    (source, idx) => {
-      const key = getDistanceKeyFromLatLng(source, dest, mode)
-      const value = distances[idx]
-      window.localStorage.setItem(key, JSON.stringify(value));
-    }
-  )
-}
-
-function getDistanceKeyFromLatLng (source, dest, mode) {
-  const destObj = {
-    lat: dest.lat(),
-    lng: dest.lng(),
-  }
-
-  const sourceObj = {
-    lat: source.lat(),
-    lng: source.lng(),
-  }
-
-  return JSON.stringify(sourceObj) + JSON.stringify(destObj) + mode
-}
-
-function getDistanceForAll (sources, dest, mode) {
-  if (!Array.isArray(sources)) {
-    console.error('Error: sources must be an array')
-    return Promise.reject(false)
-  }
-
-  const uncached = sources.filter(
-    source => {
-      return _.isNil(
-        window.localStorage.getItem(getDistanceKeyFromLatLng(source, dest, mode))
-      )
-    }
-  )
-
-  console.log('uncached', uncached)
-
-  if (uncached.length === 0) {
-    console.log('all cached')
-    return Promise.resolve([])
-  }
-
-  const chunks = _.chunk(uncached, 24)
-  let netwkCount = 0;
-
-  return Promise.map(
-    chunks,
-    (sourceChunk, idx) => {
-      return new Promise((resolve, reject) => {
-        setTimeout(() => {
-          distance.getDistanceMatrix({
-            origins: sourceChunk,
-            destinations: [dest],
-            travelMode: mode
-          }, (results, status) => {
-            if (status === 'OK' && results.rows) {
-              const distances = results.rows.map(_.property('elements[0]'))
-              cacheDistances(sourceChunk, dest, mode, distances)
-              return resolve(distances)
-            }
-
-            console.error(`Failed ${mode} on chunk ${idx}:`, status)
-            console.error(`Netwk count is ${netwkCount}`)
-
-            return reject(new Error(status))
-          })
-        }, Math.pow(2, netwkCount++) * 50)
-      })
-    }
-  ).then(chunkResults => {
-    return _.flatten(chunkResults)
-  })
-
-  // return new Promise((resolve, reject) => {
-  //   distance.getDistanceMatrix({
-  //     origins: sources,
-  //     destinations: [dest],
-  //     travelMode: 'BICYCLING'
-  //   }, (results, status) => {
-  //     console.log('results', results);
-  //     console.log('status', status);
-  //     if (status === 'OK') {
-  //       return resolve(results)
-  //     }
-  //
-  //     return reject(results)
-  //   })
-  // })
-}
-
-function getDrivingDistance (source, dest) {
-  return pt2ptDistance(source, dest, 'DRIVING')
-}
-
-function getCyclingDistance (source, dest) {
-  return pt2ptDistance(source, dest, 'BICYCLING')
-}
-
-// getCoords('nw1 7bs')
-//   .then(res => console.log('res', res))
-//   .catch(err => console.log('err', err))
-
-// getCyclingDistance(
-//   'Flat 112 Carlow House, Carlow St, London NW1 7BS',
-//   '20 Farringdon Road, London EC1 M3HE'
-// )
-//   .then(res => console.log('res', res))
-//   .catch(err => console.log('err', err))
 
 // location, work, bike, transport, rent, bills, smoking
 export default function (form) {
@@ -170,20 +79,12 @@ export default function (form) {
         .then(result => result.json())
         .then(body => normalizeListings(body.results, workLatLng))
     })
-
-  // return getSRQueryString(form)
-  //   .then(uriParams => {
-  //     return fetch(
-  //       `https://www.spareroom.co.uk/flatshare/api.pl?${uriParams}` // ,
-  //     )
-  //   })
-  //   .then(result => result.json())
-  //   .then(body => normalizeListings(body.results))
 }
 
 // pw = pcm × 0.2299794661
 // pcm = pw * 4.3482142857
 function normalizeListings (listings, work) {
+  // Ensure rent is in pcm (instead of pw)
   const normalized = listings.map(modify({
     min_rent: (rent, _k, listing) => {
       return listing.per === 'pw'
@@ -199,58 +100,18 @@ function normalizeListings (listings, work) {
     Number(listing.longitude)
   ))
 
-  return getDistanceForAll(sources, work, 'BICYCLING')
-    .then(result => {
-      console.log('cycling', result)
-      return result
-    }).delay(5000).then(cycling => {
-      return getDistanceForAll(sources, work, 'TRANSIT', 2000)
-        .then(transit => {
-            console.log('transit', transit)
-          return [cycling, transit]
+  return doChunkedRequest(sources, work, 'BICYCLING')
+    .then(cyclingResult => {
+      console.log('cycling', cyclingResult)
+      return doChunkedRequest(sources, work, 'TRANSIT')
+        .then(transitResult => {
+          console.log('transitResult', transitResult)
+          return [cyclingResult, transitResult]
         })
     }).catch(err => {
-      console.log('err (outside)', err)
-    })
-
-  // return Promise.join(
-  //   getDistanceForAll(sources, work, 'BICYCLING'),
-  //   getDistanceForAll(sources, work, 'TRANSIT', 2000),
-  // ).then(([ cycling, transit ]) => {
-  //   console.log('cycling', cycling)
-  //   console.log('transit', transit)
-  // }).catch(err => {
-  //   console.log('err', err)
-  // })
-
-  // return getDistanceForAll(sources, work, 'BICYCLING')
-  //   .then(result => {
-  //     console.log('result', result)
-  //     return normalized
-  //   })
-  //   .catch(err => {
-  //     console.log('err', err)
-  //     return Promise.reject(err)
-  //   })
-
-  // return Promise.map(
-  //   normalized,
-  //   listing => {
-  //     const location = new google.maps.LatLng(
-  //       Number(listing.latitude),
-  //       Number(listing.longitude)
-  //     )
-  //
-  //     return Promise.join(
-  //       getCyclingDistance(location, work),
-  //       getDrivingDistance(location, work)
-  //     ).then(([ cycling, driving ]) => {
-  //       listing.cycling = cycling
-  //       listing.driving = driving
-  //       return listing
-  //     })
-  //   }
-  // )
+    console.log('Error in request:', err)
+    return Promise.reject(err)
+  })
 }
 
 function modify (modifier) {
