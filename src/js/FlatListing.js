@@ -86,16 +86,18 @@ function FlatItem (props) {
     <div className="box">
       <div className="media">
         <div className="media-left listing-left">
-          <figure className="image">
+          <a href={getSpareRoomURL(props.data)} className="image">
             <img src={props.data.main_image_square_url} />
-          </figure>
+          </a>
 
           <RentBox per={props.data.per} rent={props.data.min_rent} />
         </div>
 
         <div className="media-content">
           <p>
-            <strong>{ props.data.ad_title }</strong>
+            <a href={getSpareRoomURL(props.data)}>
+              <strong>{ props.data.ad_title }</strong>
+            </a>
           </p>
 
           <AdText text={props.data.ad_text_255} />
@@ -352,5 +354,9 @@ function Navigation (props) {
 Navigation.propTypes = {
   onClickBack: React.PropTypes.func.isRequired,
   onClickRefresh: React.PropTypes.func.isRequired,
+}
+
+function getSpareRoomURL (listing) {
+  return `https://www.spareroom.co.uk/${listing.advert_id}`
 }
 
