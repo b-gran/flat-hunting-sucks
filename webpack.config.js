@@ -17,23 +17,11 @@ if (fileSystem.existsSync(secretsPath)) {
 }
 
 const Entries = {
-  popup: Entry(
-    'popup',
-    path.join(__dirname, "src", "js", "popup.js"),
-    path.join(__dirname, "src", "popup.html")
+  main: Entry(
+    'main',
+    path.join(__dirname, "src", "js", "main.js"),
+    path.join(__dirname, "src", "main.html")
   ),
-
-  // options: Entry(
-  //   'options',
-  //   path.join(__dirname, "src", "js", "options.js"),
-  //   path.join(__dirname, "src", "options.html")
-  // ),
-  //
-  // background: Entry(
-  //   'background',
-  //   path.join(__dirname, "src", "js", "background.js"),
-  //   path.join(__dirname, "src", "background.html")
-  // ),
 };
 
 function Entry (id, filename, htmlFile) {

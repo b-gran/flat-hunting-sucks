@@ -1,6 +1,6 @@
 // Resets, frameworks, etc.
 // This needs to come first so we can override the styles.
-import './popup.css'
+import './main.css'
 
 import 'whatwg-fetch'
 

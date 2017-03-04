@@ -1,8 +1,12 @@
 {
   "name": "Flat Hunting Sucks",
+  "background": {
+    "scripts": ["static/background.js"],
+    "persistent": false
+  },
   "browser_action": {
     "default_icon": "static/icon.png",
-    "default_popup": "popup.html"
+    "default_title": "Flat Hunting Sucks"
   },
   "manifest_version": 2,
   "content_security_policy": "script-src 'self' https://maps.googleapis.com http://localhost:8097; object-src 'self'",
@@ -10,6 +14,7 @@
     "http://*/",
     "https://*/",
     "activeTab",
-    "storage"
+    "storage",
+    "debugger"
   ]
 }

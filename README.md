@@ -21,9 +21,9 @@ _I'll assume that you already read the [Webpack docs](https://webpack.github.io/
 ##Structure
 All your extension's development code must be placed in `src` folder, including the extension manifest.
 
-The boilerplate is already prepared to have a popup, a options page and a background page. You can easily customize this.
+The boilerplate is already prepared to have a main, a options page and a background page. You can easily customize this.
 
-Each page has its own [assets package defined](https://github.com/samuelsimoes/chrome-extension-webpack-boilerplate/blob/master/webpack.config.js#L16-L20). So, to code on popup you must start your code on `src/js/popup.js`, for example.
+Each page has its own [assets package defined](https://github.com/samuelsimoes/chrome-extension-webpack-boilerplate/blob/master/webpack.config.js#L16-L20). So, to code on main you must start your code on `src/js/main.js`, for example.
 
 You must use the [ES6 modules](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import) to a better code organization. The boilerplate is already prepared to that and [here you have a little example](https://github.com/samuelsimoes/chrome-extension-webpack-boilerplate/blob/master/src/js/popup.js#L2-L4).
 
@@ -88,7 +88,7 @@ _./secrets.development.js_
 export default { key: "123" };
 ```
 
-_./src/popup.js_
+_./src/main.js_
 
 ```js
 import secrets from "secrets";
