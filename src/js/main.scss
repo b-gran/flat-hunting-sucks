@@ -6,7 +6,6 @@ $fa-font-path: "../../node_modules/font-awesome/fonts" !default;
 
 html, body {
   font-family: 'Raleway', sans-serif;
-  width: 785px;
 }
 
 // Helpers
@@ -17,6 +16,7 @@ html, body {
 
 .is-inline-flex {
   display: inline-flex;
+
   &.is-vcentered {
     align-items: center;
   }
