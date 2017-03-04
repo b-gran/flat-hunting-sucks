@@ -78,6 +78,11 @@ facade.subscribe(
   _.property('page')
 )
 
+facade.subscribe(
+  filter => window.localStorage.setItem('filter', JSON.stringify(filter)),
+  _.property('filter')
+)
+
 ReactDOM.render(
   <Provider store={store}>
     <App />

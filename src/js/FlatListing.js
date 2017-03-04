@@ -2,6 +2,10 @@ import React from 'react'
 import { connect } from 'react-redux'
 import _ from 'lodash'
 
+import { FilterOptions, FilterOptionText } from './reducers/index'
+
+import Flat from './Flat'
+
 import retrieveListings from './retrieve-listings'
 
 import './FlatListing.css'
@@ -37,12 +41,15 @@ class FlatListing extends React.Component {
           <div className="container is-fluid">
             <Navigation onClickBack={onNavigateBack} onClickRefresh={getResults}/>
 
+            <Filter filter={this.props.filter} changeFilter={this.props.onChangeFilter}/>
+
             <div className="listings">
               {
                 !_.isEmpty(this.props.listings) &&
-                this.props.listings
+                // this.props.listings
+                sortListings(this.props.listings, this.props.filter)
                   .map(listing => (
-                    <FlatItem key={listing.advert_id} data={listing} />
+                    <Flat key={listing.advert_id} data={listing} />
                   ))
               }
 
@@ -72,252 +79,123 @@ class FlatListing extends React.Component {
     )
   }
 }
+FlatListing.propTypes = {
+  form: React.PropTypes.object,
+  filter: React.PropTypes.object,
+  listings: React.PropTypes.array,
+  error: React.PropTypes.object,
+  dispatch: React.PropTypes.func.isRequired,
+  onChangeFilter: React.PropTypes.func.isRequired,
+}
+
+function sortListings (listings, filter) {
+  const baseSortFunction = {
+    [FilterOptions.sortBy.CYCLING]: (listing1, listing2) => {
+      if (!listing1.cyclingDistance || !listing2.cyclingDistance) {
+        return 0
+      }
+
+      return (
+        listing1.cyclingDistance.duration.value -
+        listing2.cyclingDistance.duration.value
+      )
+    },
+
+    [FilterOptions.sortBy.PRICE]: (listing1, listing2) => {
+      if (!listing1.min_rent || !listing2.min_rent) {
+        return 0
+      }
+
+      return (
+        Number(listing1.min_rent) -
+        Number(listing2.min_rent)
+      )
+    },
+
+    [FilterOptions.sortBy.TRANSIT]: (listing1, listing2) => {
+      if (!listing1.transitDistance || !listing2.transitDistance) {
+        return 0
+      }
+
+      return (
+        listing1.transitDistance.duration.value -
+        listing2.transitDistance.duration.value
+      )
+    },
+  }[filter.sortBy]
+
+  const ordering = {
+    [FilterOptions.order.ASCENDING]: x => x,
+    [FilterOptions.order.DESCENDING]: x => -x,
+  }[filter.order]
+
+  const sortFunction = _.flow(baseSortFunction, ordering)
+
+  return listings.slice().sort(sortFunction)
+}
 
 export default connect(
   state => ({
     form: state.form,
+    filter: state.filter,
     listings: state.listings,
     error: state.error,
   }),
   dispatch => ({
-    dispatch: dispatch
+    dispatch: dispatch,
+    onChangeFilter: (key, value) => dispatch({
+      type: 'update filter',
+      key: key,
+      value: value
+    })
   })
 )(FlatListing)
-function FlatItem (props) {
+
+function Filter (props) {
   return (
-    <div className="box">
-      <div className="media">
-        <div className="media-left listing-left">
-          <a href={getSpareRoomURL(props.data)} className="image">
-            <img src={props.data.main_image_square_url} />
-          </a>
-
-          <RentBox per={props.data.per} rent={props.data.min_rent} />
-        </div>
-
-        <div className="media-content">
-          <p>
-            <a href={getSpareRoomURL(props.data)}>
-              <strong>{ props.data.ad_title }</strong>
-            </a>
-          </p>
-
-          <AdText text={props.data.ad_text_255} />
-
-          <div className="bottom-row">
-            <RoomsFilled
-              totalRooms={parseInt(props.data.rooms_in_property)}
-              roomsForRent={parseInt(props.data.rooms_for_rent)} />
-
+    <div className="filter">
+      <div>
+        <label className="label">Sort by</label>
+        <div className="control">
+        <span className="select">
+          <select
+            value={props.filter.sortBy}
+            onChange={evt => props.changeFilter('sortBy', evt.target.value)}>
             {
-              props.data.cyclingDistance &&
-              <Commute data={props.data.cyclingDistance} icon="fa-bicycle" />
+              Object.keys(FilterOptions.sortBy).map(
+                option => <option value={option}>
+                  {FilterOptionText.sortBy[option]}
+                </option>
+              )
             }
+          </select>
+        </span>
+        </div>
+      </div>
 
+      <div>
+        <label className="label">Order</label>
+        <div className="control">
+        <span className="select">
+          <select
+            value={props.filter.order}
+            onChange={evt => props.changeFilter('order', evt.target.value)}>
             {
-              props.data.transitDistance &&
-              <Commute data={props.data.transitDistance} icon="fa-subway" />
+              Object.keys(FilterOptions.order).map(
+                option => <option value={option}>
+                  {FilterOptionText.order[option]}
+                </option>
+              )
             }
-          </div>
-        </div>
-
-        <div className="media-right tags">
-          <span className="tag is-primary">
-            { props.data.neighbourhood_name } &nbsp;
-            <strong> { props.data.postcode } </strong>
-          </span>
-
-          {
-            isEnsuite(props.data)
-              ? <span className="tag is-success is-small">Ensuite</span>
-              : <span className="tag is-danger is-small">Shared bathroom</span>
-          }
-
-          {
-            isFullTime(props.data)
-              ? <span className="tag is-success is-small">Full time</span>
-              : <span className="tag is-danger is-small">{ props.data.days_of_wk_available }</span>
-          }
-
-          {
-            isRentByRoom(props.data)
-              ? <span className="tag is-success is-small">By room</span>
-              : <span className="tag is-danger is-small">{ _.capitalize(props.data.rent_options) }</span>
-          }
+          </select>
+        </span>
         </div>
       </div>
     </div>
   )
 }
-FlatItem.displayName = 'FlatItem'
-FlatItem.propTypes = {
-  data: React.PropTypes.object.isRequired,
-}
-
-const DistanceMatrixData = React.PropTypes.shape({
-  text: React.PropTypes.string.isRequired,
-  value: React.PropTypes.any.isRequired,
-})
-const DistanceMatrixResult = React.PropTypes.shape({
-  distance: DistanceMatrixData.isRequired,
-  duration: DistanceMatrixData.isRequired,
-})
-
-function Commute (props) {
-  const iconClasses = `fa ${props.icon}`
-  return (
-    <div className="commutes-item">
-      <div>
-        <i className={iconClasses} />
-      </div>
-
-      <div>
-        <span>{ props.data.duration.text }</span>
-      </div>
-
-      <div>
-        <span>{ props.data.distance.text }</span>
-      </div>
-    </div>
-  );
-}
-Commute.propTypes = {
-  data: DistanceMatrixResult.isRequired,
-  icon: React.PropTypes.string.isRequired,
-}
-
-function RoomsFilled (props) {
-  const totalIsNumber = _.isNumber(props.totalRooms)
-  const currentIsNumber = _.isNumber(props.roomsForRent)
-  if (totalIsNumber && currentIsNumber) {
-    return (
-      <div className="rooms-filled is-inline-flex is-hcentered">
-        <span className="rooms-left">
-          { props.roomsForRent } of { props.totalRooms }&nbsp;
-        </span>
-        <span className="icon is-small">
-          <i className="fa fa-bed"/>
-        </span>
-      </div>
-    )
-  }
-
-  if (currentIsNumber && !totalIsNumber) {
-    return (
-      <div className="rooms-filled">
-        <span className="rooms-left">
-          { props.roomsForRent }
-        </span>
-        <i className="fa fa-bed"/>
-        for rent
-      </div>
-    )
-  }
-
-  if (!currentIsNumber && totalIsNumber) {
-    return (
-      <div className="rooms-filled">
-        <span className="rooms-left">
-          { props.totalRooms }
-        </span>
-        <i className="fa fa-bed"/>
-        total
-      </div>
-    )
-  }
-
-  // No total or current
-  return null
-}
-RoomsFilled.propTypes = {
-  totalRooms: React.PropTypes.number,
-  roomsForRent: React.PropTypes.number,
-}
-
-function AdText (props) {
-  return (
-    <div className="ad-text is-small">
-      { convertAdTextToMarkup(props.text) }
-    </div>
-  )
-}
-AdText.propTypes = {
-  text: React.PropTypes.string,
-}
-
-function convertAdTextToMarkup (adText) {
-  if (!_.isString(adText) || _.isEmpty(adText)) {
-    return null;
-  }
-
-  const lines = adText
-    .split(/\s*(\r|\n|\r\n|\n\r)+/ig)
-    .map(_.trim)
-    .filter(_.negate(_.isEmpty));
-
-  return (
-    <div className="ad-text-wrap">
-      {
-        lines.map(line => (
-          <div key={line} className="ad-text-line">{ line }</div>
-        ))
-      }
-    </div>
-  )
-}
-
-const byRoomRegexp = /room/i;
-
-function isRentByRoom (listingData) {
-  if (_.isEmpty(listingData)) {
-    return false
-  }
-
-  return byRoomRegexp.test(listingData.rent_options);
-}
-
-const regexp7 = /7/i;
-
-function isFullTime (listingData) {
-  if (_.isEmpty(listingData)) {
-    return false
-  }
-
-  return regexp7.test(listingData.days_of_wk_available);
-}
-
-const ensuiteRegexp = /(ensuite?|en-suite?|en\ssuite?)/i;
-const privateBathroomRegexp = /(private|own)\s+bathroom/i;
-
-function isEnsuite (listingData) {
-  if (_.isEmpty(listingData)) {
-    return false
-  }
-
-  return (
-    ensuiteRegexp.test(listingData.ad_text_255) ||
-    ensuiteRegexp.test(listingData.ad_title) ||
-    privateBathroomRegexp.test(listingData.ad_text_255) ||
-    privateBathroomRegexp.test(listingData.ad_title)
-  )
-}
-
-function RentBox (props) {
-  return (
-    <span className="rent is-inline-flex is-vcentered is-hcentered">
-      <span className="icon is-small">
-        <i className="fa fa-gbp" />
-      </span>
-      <span className="is-bold">{ props.rent }</span>
-      &nbsp;
-      { props.per }
-    </span>
-  )
-}
-RentBox.displayName = 'RentBox'
-RentBox.propTypes = {
-  rent: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.number]).isRequired,
-  per: React.PropTypes.string.isRequired,
+Filter.propTypes = {
+  changeFilter: React.PropTypes.func.isRequired,
 }
 
 function Navigation (props) {
@@ -335,11 +213,11 @@ function Navigation (props) {
         </div>
       </div>
 
-      <divikjasdfasdfaiasdif className="nav-center">
+      <div className="nav-center">
         <div className="nav-item">
           <span className="title is-3">View Listings</span>
         </div>
-      </divikjasdfasdfaiasdif>
+      </div>
 
       <div className="nav-right">
         <div className="nav-item">
@@ -358,9 +236,5 @@ function Navigation (props) {
 Navigation.propTypes = {
   onClickBack: React.PropTypes.func.isRequired,
   onClickRefresh: React.PropTypes.func.isRequired,
-}
-
-function getSpareRoomURL (listing) {
-  return `https://www.spareroom.co.uk/${listing.advert_id}`
 }
 

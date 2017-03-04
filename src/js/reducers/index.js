@@ -1,7 +1,34 @@
 import { combineReducers } from 'redux'
 import form from './form'
+import isNil from 'lodash/isNil'
 
 import match from '../reducer'
+
+export const FilterOptions = {
+  sortBy: {
+    PRICE: 'PRICE',
+    CYCLING: 'CYCLING',
+    TRANSIT: 'TRANSIT',
+  },
+
+  order: {
+    ASCENDING: 'ASCENDING',
+    DESCENDING: 'DESCENDING',
+  }
+}
+
+export const FilterOptionText = {
+  sortBy: {
+    PRICE: 'Price',
+    CYCLING: 'Cycling time',
+    TRANSIT: 'Transit time',
+  },
+
+  order: {
+    ASCENDING: 'Ascending',
+    DESCENDING: 'Descending',
+  }
+}
 
 export default combineReducers({
   form: form,
@@ -24,5 +51,20 @@ export default combineReducers({
         message: action.message || (action.data && action.data.message),
         data: action.data
       }))
-  ))
+  )),
+
+  filter: match.defaultTo({
+    sortBy: FilterOptions.sortBy.PRICE,
+    order: FilterOptions.order.ASCENDING,
+  })(
+    match.all(
+      match({ type: match.eq('update filter') })
+        .with((state, action) => {
+          return {
+            ...state,
+            [action.key]: action.value
+          }
+        })
+    )
+  )
 })
