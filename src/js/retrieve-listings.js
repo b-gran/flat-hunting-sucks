@@ -194,6 +194,17 @@ function modify (modifier) {
   }
 }
 
+// Other fields:
+//    room_types: double | single
+//    share_type: P | S
+//                |   |
+//                |   +- Students
+//                +- Professionals
+//    posted_by: agents | private_landlords
+//    days_of_wk_available: "7 days a week" | "Mon to Fri only"
+//    living_room: shared
+//    smoking: Y | N
+
 function getSRQueryString (form) {
   return getCoords(form.location)
     .then(location => {
@@ -220,11 +231,6 @@ function getSRQueryString (form) {
 
         max_rent: form.rent,
         per: 'pcm',
-
-        // latitude:51.536213040708596,
-        // longitude:-0.14420300000006137,
-        // latitude_delta:0.05894100000000435,
-        // longitude_delta:0.10747400000002472
 
         latitude: location.lat,
         longitude: location.lng,
