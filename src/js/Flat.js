@@ -42,10 +42,7 @@ export default function Flat (props) {
         </div>
 
         <div className="media-right tags">
-          <span className="tag is-primary">
-            { props.data.neighbourhood_name } &nbsp;
-            <strong> { props.data.postcode } </strong>
-          </span>
+          <LocationTag data={props.data} />
 
           {
             props.data.ensuite
@@ -72,6 +69,23 @@ export default function Flat (props) {
 Flat.displayName = 'Flat'
 Flat.propTypes = {
   data: React.PropTypes.object.isRequired,
+}
+
+function LocationTag (props) {
+  return (
+    <a href={googleMapsUrl(props.data)} className="tag is-primary">
+      { props.data.neighbourhood_name } &nbsp;
+      <strong> { props.data.postcode } </strong>
+    </a>
+  )
+}
+LocationTag.propTypes = {
+  data: React.PropTypes.object.isRequired
+}
+
+function googleMapsUrl (listing) {
+  const coords = `${listing.latitude},${listing.longitude}`
+  return `https://maps.google.com/?q=${coords}`
 }
 
 const DistanceMatrixData = React.PropTypes.shape({
