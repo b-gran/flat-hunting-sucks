@@ -89,6 +89,7 @@ FlatListing.propTypes = {
 
 function sortListings (listings, filter) {
   const averages = precomputeAverages(listings)
+  const minmax = precomputeMinMax(listings)
 
   const baseSortFunction = {
     [FilterOptions.sortBy.PRICE]: sortByProperty('min_rent'),
@@ -96,8 +97,8 @@ function sortListings (listings, filter) {
     [FilterOptions.sortBy.TRANSIT]: sortByProperty('transitDistance.duration.value'),
     [FilterOptions.sortBy.BEST]: (listing1, listing2) => {
       return (
-        getRating(listing1, averages) -
-        getRating(listing2, averages)
+        getRating(listing1, minmax) -
+        getRating(listing2, minmax)
       )
     }
   }[filter.sortBy]
@@ -112,28 +113,90 @@ function sortListings (listings, filter) {
   return listings.slice().sort(sortFunction)
 }
 
-function getRating (listing, averages) {
+function getRating (listing, minmax) {
+  const cycling = getRatio(
+    listing,
+    'cyclingDistance.duration.value',
+    minmax[FilterOptions.sortBy.CYCLING]
+  )
+
+  const rent = getRatio(
+    listing,
+    'min_rent',
+    minmax[FilterOptions.sortBy.PRICE]
+  )
+
+  const transit = getRatio(
+    listing,
+    'transitDistance.duration.value',
+    minmax[FilterOptions.sortBy.TRANSIT]
+  )
+
   return (
-    point(
-      listing,
-      'min_rent',
-      averages[FilterOptions.sortBy.PRICE]
-    ) +
-    point(
-      listing,
-      'cyclingDistance.duration.value',
-      averages[FilterOptions.sortBy.CYCLING]
-    ) +
-    point(
-      listing,
-      'transitDistance.duration.value',
-      averages[FilterOptions.sortBy.TRANSIT]
-    ) +
+    rent + cycling + transit +
     (listing.ensuite ? 1 : -1) +
-    (listing.isFullTime ? 1 : -2) +
-    (listing.rentByRoom ? 1 : -2)
+    (listing.isFullTime ? 1 : -1) +
+    (listing.rentByRoom ? 1 : -1)
+  ) / 6
+}
+
+function getRatio (listing, property, minmax) {
+  const [minValue,maxValue] = minmax
+
+  const value = _.get(listing, property)
+
+  if (_.isNil(value)) {
+    return 0
+  }
+
+  return (
+    1 -
+    ((value - minValue) / (maxValue - minValue))
   )
 }
+
+function precomputeMinMax (listings) {
+  const rentMinMax = getMinMax(listings, 'min_rent')
+  const cyclingMinMax = getMinMax(listings, 'cyclingDistance.duration.value')
+  const transitMinMax = getMinMax(listings, 'transitDistance.duration.value')
+
+  return {
+    [FilterOptions.sortBy.PRICE]: rentMinMax,
+    [FilterOptions.sortBy.CYCLING]: cyclingMinMax,
+    [FilterOptions.sortBy.TRANSIT]: transitMinMax,
+  }
+}
+
+function getMinMax (listings, property) {
+  const values = _.map(listings, property)
+  return [
+    _.min(values),
+    _.max(values)
+  ]
+}
+
+// function getRating (listing, averages) {
+//   return (
+//     point(
+//       listing,
+//       'min_rent',
+//       averages[FilterOptions.sortBy.PRICE]
+//     ) +
+//     point(
+//       listing,
+//       'cyclingDistance.duration.value',
+//       averages[FilterOptions.sortBy.CYCLING]
+//     ) +
+//     point(
+//       listing,
+//       'transitDistance.duration.value',
+//       averages[FilterOptions.sortBy.TRANSIT]
+//     ) +
+//     (listing.ensuite ? 1 : -1) +
+//     (listing.isFullTime ? 1 : -2) +
+//     (listing.rentByRoom ? 1 : -2)
+//   )
+// }
 
 function point (listing, property, average) {
   const value = _.get(listing, property)
