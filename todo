@@ -1,0 +1,15 @@
+* Clean up C.js
+* Break up massive, shitty files into modules
+* Add propTypes to pretty much everything
+* Fix redux (random magic strings as types??)
+* Scrape SR for listing text & ensuite data
+    * Current ensuite data is not 100% reliable
+* Rename data -> listing
+* Revisit Google chunker -- way to get more reliability?
+* Filter by keywords
+* Best results
+    * keywords
+    * # of rooms to fill
+        * fewer is better
+* Performance!!!
+    * shouldComponentUpdate()
