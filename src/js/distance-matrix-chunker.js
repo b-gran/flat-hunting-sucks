@@ -78,13 +78,15 @@ function getQueue (doTask, elementsPerSecond) {
     // one second max.
     if (diff(currentTime, bandwidthRestoredTime) > 1e3) {
       console.log(`need ${bandwidthNeeded}... waiting for 1000`)
-      return Promise.delay(1000)
+      return Promise.delay(withSafetyPadding(1000))
     }
 
     console.log(`need ${bandwidthNeeded}... waiting for ${diff(currentTime, bandwidthRestoredTime)}`)
 
     // Wait until we get back the bandwidth needed to do the task
-    return Promise.delay(diff(currentTime, bandwidthRestoredTime))
+    return Promise.delay(withSafetyPadding(
+      diff(currentTime, bandwidthRestoredTime)
+    ))
 
     function canStep () {
       return (
@@ -98,6 +100,11 @@ function getQueue (doTask, elementsPerSecond) {
   function updateRequests (requestTime, requestSize) {
     requests.unshift([ requestTime, requestSize ])
   }
+}
+
+const safetyPadding = 75
+function withSafetyPadding (value) {
+  return value + safetyPadding
 }
 
 function diff (source, dest) {

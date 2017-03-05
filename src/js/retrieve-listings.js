@@ -77,7 +77,7 @@ export default function (form) {
           )
         })
         .then(result => result.json())
-        .then(body => normalizeListings(body.results, workLatLng))
+        .then(body => normalizeListings(body.results, workLatLng, form))
     })
 }
 
@@ -117,9 +117,10 @@ function isEnsuite (listingData) {
   )
 }
 
+// location, work, bike, transport, rent, bills, smoking
 // pw = pcm × 0.2299794661
 // pcm = pw * 4.3482142857
-function normalizeListings (listings, work) {
+function normalizeListings (listings, work, form) {
   // Ensure rent is in pcm (instead of pw)
   const normalized = listings.map(modify({
     min_rent: (rent, _k, listing) => {
@@ -153,7 +154,12 @@ function normalizeListings (listings, work) {
         })
     })
     .then(([cyclingResult, transitResult]) => {
-      return buildResult(cyclingResult, transitResult)
+      return buildResult(
+        cyclingResult,
+        transitResult,
+        Number(form.bike),
+        Number(form.transport)
+      )
     })
     .catch(err => {
       console.log('Error in request:', err)
@@ -161,7 +167,8 @@ function normalizeListings (listings, work) {
     })
 }
 
-function buildResult (cycling, transit) {
+// maxCycling and maxTransport in minutes
+function buildResult (cycling, transit, maxCycling, maxTransport) {
   const map = {}
   cycling.forEach(([listing, distance]) => {
     map[listing.advert_id] = map[listing.advert_id] || listing
@@ -172,7 +179,16 @@ function buildResult (cycling, transit) {
     map[listing.advert_id].transitDistance = distance
   })
 
-  return _.values(map)
+  // Filter results by cycling and transport
+  return _.values(map).filter(listing => {
+    const cycling = _.get(listing, 'cyclingDistance.duration.value')
+    const transport = _.get(listing, 'transitDistance.duration.value')
+
+    const cyclingOk = _.isNil(cycling) || (cycling <= maxCycling * 60)
+    const transportOk = _.isNil(transport) || (transport <= maxTransport * 60)
+
+    return cyclingOk && transportOk
+  })
 }
 
 function modify (modifier) {
@@ -210,7 +226,7 @@ function getSRQueryString (form) {
     .then(location => {
       return getQSFromObject({
         show: 'all',
-        max_per_page: 100,
+        max_per_page: 300,
         interactive: 0,
         encoding: 'html',
         flatshare_type: 'offered',
