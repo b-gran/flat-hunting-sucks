@@ -35,11 +35,6 @@ export const FilterOptionText = {
 export default combineReducers({
   form: form,
 
-  page: match.defaultTo('form')(match.all(
-    match({ type: match.eq('change page' )})
-      .with((state, action) => action.page)
-  )),
-
   listings: match.defaultTo([])(
     match.all(
       match({ type: match.eq('load listings') })

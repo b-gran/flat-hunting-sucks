@@ -72,16 +72,6 @@ function FlatSearch (props) {
     value: evt.target.checked
   })
 
-  const doSearch = () => props.dispatch({
-    type: 'change page',
-    page: 'search'
-  })
-
-  const searchButtonClasses = cx(
-    'button is-primary',
-    { 'is-disabled': !canViewResults(props.form) }
-  )
-
   return (
     <div className="section has-small-padding flat-search">
       <Label>Flat Location</Label>
@@ -143,15 +133,6 @@ function FlatSearch (props) {
                className="input is-expanded"/>
         <a className="button is-info">£ (pcm)</a>
       </HorizontalInput>
-
-      <div className="level">
-        <div className="level-item">
-          <a onClick={doSearch} className={searchButtonClasses}>
-            <i className="fa fa-search"/>
-            Search For Flats
-          </a>
-        </div>
-      </div>
     </div>
   )
 }
