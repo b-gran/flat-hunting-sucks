@@ -4,11 +4,30 @@
 $fa-font-path: "../../node_modules/font-awesome/fonts" !default;
 @import "../../node_modules/font-awesome/scss/font-awesome.scss";
 
+.full-height {
+  height: 100%;
+  max-height: 100%;
+}
+
+// Make the page full-height
+html, body, #app-container, .app, .main-content {
+  @extend .full-height;
+}
+
+// Don't allow scrolling the entire page
+html {
+  overflow: hidden;
+}
+
 html, body {
   font-family: 'Raleway', sans-serif;
 }
 
 // Helpers
+
+.section.has-small-padding {
+  padding: 0.5rem 1.5rem;
+}
 
 .is-bold, .title.is-bold {
   font-weight: bold;

@@ -11,13 +11,17 @@ class App extends Component {
   render () {
     return (
       <div className="app">
-        <Navigation/>
+        <Navigation />
 
-        {
-          this.props.page === 'form'
-            ? <FlatSearch/>
-            : <FlatListing/>
-        }
+        <div className="main-content">
+          <div className="sidebar">
+            <FlatSearch />
+          </div>
+
+          <div className="section has-small-padding main-column">
+            <FlatListing />
+          </div>
+        </div>
       </div>
     );
   }

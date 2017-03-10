@@ -1,3 +1,7 @@
+.listing-controls {
+  display: flex;
+  justify-content: space-between; }
+
 .listings {
   margin: 20px 0; }
 

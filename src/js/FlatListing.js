@@ -12,11 +12,6 @@ import './FlatListing.css'
 
 class FlatListing extends React.Component {
   render () {
-    const onNavigateBack = () => this.props.dispatch({
-      type: 'change page',
-      page: 'form'
-    })
-
     const getResults = () => {
       return retrieveListings(this.props.form)
         .then(res => {
@@ -39,9 +34,17 @@ class FlatListing extends React.Component {
       <div className="columns">
         <div className="column">
           <div className="container is-fluid">
-            <Navigation onClickBack={onNavigateBack} onClickRefresh={getResults}/>
+            <div className="listing-controls">
+              <Filter filter={this.props.filter} changeFilter={this.props.onChangeFilter}/>
 
-            <Filter filter={this.props.filter} changeFilter={this.props.onChangeFilter}/>
+              <a onClick={getResults} className="button-wrap back-button">
+                <span className="icon is-medium">
+                  <i className="fa fa-refresh" />
+                </span>
+
+                <span className="title is-3">&nbsp;Refresh</span>
+              </a>
+            </div>
 
             <div className="listings">
               {
@@ -85,6 +88,46 @@ FlatListing.propTypes = {
   error: React.PropTypes.object,
   dispatch: React.PropTypes.func.isRequired,
   onChangeFilter: React.PropTypes.func.isRequired,
+}
+
+function Navigation (props) {
+  return (
+    <nav className="page-navigation nav">
+      <div className="nav-left">
+        <div className="nav-item">
+          <a onClick={props.onClickBack} className="button-wrap back-button">
+            <span className="icon is-medium">
+              <i className="fa fa-arrow-left" />
+            </span>
+
+            <span className="title is-3">&nbsp;Back</span>
+          </a>
+        </div>
+      </div>
+
+      <div className="nav-center">
+        <div className="nav-item">
+          <span className="title is-3">View Listings</span>
+        </div>
+      </div>
+
+      <div className="nav-right">
+        <div className="nav-item">
+          <a onClick={props.onClickRefresh} className="button-wrap back-button">
+            <span className="icon is-medium">
+              <i className="fa fa-refresh" />
+            </span>
+
+            <span className="title is-3">&nbsp;Refresh</span>
+          </a>
+        </div>
+      </div>
+    </nav>
+  )
+}
+Navigation.propTypes = {
+  onClickBack: React.PropTypes.func.isRequired,
+  onClickRefresh: React.PropTypes.func.isRequired,
 }
 
 function sortListings (listings, filter) {
@@ -228,7 +271,7 @@ function Filter (props) {
             onChange={evt => props.changeFilter('sortBy', evt.target.value)}>
             {
               Object.keys(FilterOptions.sortBy).map(
-                option => <option value={option}>
+                option => <option key={option} value={option}>
                   {FilterOptionText.sortBy[option]}
                 </option>
               )
@@ -247,7 +290,7 @@ function Filter (props) {
             onChange={evt => props.changeFilter('order', evt.target.value)}>
             {
               Object.keys(FilterOptions.order).map(
-                option => <option value={option}>
+                option => <option key={option} value={option}>
                   {FilterOptionText.order[option]}
                 </option>
               )
@@ -261,45 +304,5 @@ function Filter (props) {
 }
 Filter.propTypes = {
   changeFilter: React.PropTypes.func.isRequired,
-}
-
-function Navigation (props) {
-  return (
-    <nav className="page-navigation nav">
-      <div className="nav-left">
-        <div className="nav-item">
-          <a onClick={props.onClickBack} className="button-wrap back-button">
-            <span className="icon is-medium">
-              <i className="fa fa-arrow-left" />
-            </span>
-
-            <span className="title is-3">&nbsp;Back</span>
-          </a>
-        </div>
-      </div>
-
-      <div className="nav-center">
-        <div className="nav-item">
-          <span className="title is-3">View Listings</span>
-        </div>
-      </div>
-
-      <div className="nav-right">
-        <div className="nav-item">
-          <a onClick={props.onClickRefresh} className="button-wrap back-button">
-            <span className="icon is-medium">
-              <i className="fa fa-refresh" />
-            </span>
-
-            <span className="title is-3">&nbsp;Refresh</span>
-          </a>
-        </div>
-      </div>
-    </nav>
-  )
-}
-Navigation.propTypes = {
-  onClickBack: React.PropTypes.func.isRequired,
-  onClickRefresh: React.PropTypes.func.isRequired,
 }
 

@@ -145,3 +145,25 @@
 .toggle.is-large:checked + label:after {
   margin-left: 45px;
   background-color: #8ce196; }
+
+.flat-search {
+  width: 320px; }
+
+.flat-search .title {
+  font-size: 1.5rem; }
+
+.is-inline-control .input {
+  min-width: 0;
+  max-width: 100%; }
+
+.grouped-control.is-horizontal {
+  display: flex; }
+
+.grouped-control.is-horizontal :last-child {
+  flex-grow: 0;
+  flex-shrink: 1; }
+
+.grouped-control.is-horizontal :first-child {
+  flex-basis: 0;
+  min-width: 0;
+  flex-grow: 1; }

@@ -72,3 +72,32 @@
   }
 }
 
+.flat-search {
+  width: 320px;
+
+  .title {
+    font-size: 1.5rem;
+  }
+}
+
+.is-inline-control {
+  .input {
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+
+.grouped-control.is-horizontal {
+  display: flex;
+
+  :last-child {
+    flex-grow: 0;
+    flex-shrink: 1;
+  }
+
+  :first-child {
+    flex-basis: 0;
+    min-width: 0;
+    flex-grow: 1;
+  }
+}

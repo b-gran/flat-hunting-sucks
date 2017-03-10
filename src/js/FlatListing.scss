@@ -1,5 +1,11 @@
 @import '../../node_modules/bulma/sass/utilities/variables';
 
+// Controls & filters for the listings
+.listing-controls {
+  display: flex;
+  justify-content: space-between;
+}
+
 // Main row layout
 
 .listings {
