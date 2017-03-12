@@ -31,51 +31,47 @@ class FlatListing extends React.Component {
     }
 
     return (
-      <div className="columns">
-        <div className="column">
-          <div className="container is-fluid">
-            <div className="listing-controls">
-              <Filter filter={this.props.filter} changeFilter={this.props.onChangeFilter}/>
+      <div className="container is-fluid">
+        <div className="listing-controls">
+          <Filter filter={this.props.filter} changeFilter={this.props.onChangeFilter}/>
 
-              <a onClick={getResults} className="button-wrap back-button">
-                <span className="icon is-medium">
-                  <i className="fa fa-refresh" />
-                </span>
+          <a onClick={getResults} className="button-wrap back-button">
+            <span className="icon is-medium">
+              <i className="fa fa-refresh" />
+            </span>
 
-                <span className="title is-3">&nbsp;Refresh</span>
-              </a>
-            </div>
+            <span className="title is-3">&nbsp;Refresh</span>
+          </a>
+        </div>
 
-            <div className="listings">
-              {
-                !_.isEmpty(this.props.listings) &&
-                sortListings(this.props.listings, this.props.filter)
-                  .map(listing => (
-                    <Flat key={listing.advert_id} data={listing} />
-                  ))
-              }
+        <div className="listings">
+          {
+            !_.isEmpty(this.props.listings) &&
+            sortListings(this.props.listings, this.props.filter)
+              .map(listing => (
+                <Flat key={listing.advert_id} data={listing} />
+              ))
+          }
 
-              {
-                _.isEmpty(this.props.listings) &&
-                  <div className="box">
-                    <p>No listings yet. Click refresh to retrieve more.</p>
-                  </div>
-              }
+          {
+            _.isEmpty(this.props.listings) &&
+              <div className="box">
+                <p>No listings yet. Click refresh to retrieve more.</p>
+              </div>
+          }
 
-              {
-                !_.isEmpty(this.props.error) &&
-                  <div className="notification is-danger">
-                    <h2 className="title is-2">
-                      { this.props.error.message }
-                    </h2>
+          {
+            !_.isEmpty(this.props.error) &&
+              <div className="notification is-danger">
+                <h2 className="title is-2">
+                  { this.props.error.message }
+                </h2>
 
-                    <pre><code>
-                      { JSON.stringify(this.props.error.data) }
-                    </code></pre>
-                  </div>
-              }
-            </div>
-          </div>
+                <pre><code>
+                  { JSON.stringify(this.props.error.data) }
+                </code></pre>
+              </div>
+          }
         </div>
       </div>
     )
